@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: 'https://rachnaumesh.github.io' })); // Ensure your frontend origin is included here
 app.use(bodyParser.json());
 
 // MongoDB Connection
@@ -33,31 +33,43 @@ const OptIn = mongoose.model('OptIn', OptInSchema);
 // Input validation middleware
 const validateInput = (req, res, next) => {
     const { firstName, lastName, age, dataConsent } = req.body;
-    
+
     if (!firstName || !lastName || !age || !dataConsent) {
         return res.status(400).json({ message: 'All fields are required' });
     }
-    
+
     if (age < 18) {
         return res.status(400).json({ message: 'Must be 18 or older' });
     }
-    
+
     if (!['yes', 'no'].includes(dataConsent)) {
         return res.status(400).json({ message: 'Invalid consent value' });
     }
-    
+
     next();
 };
 
 // API Endpoint
 app.post('/api/opt-in', validateInput, async (req, res) => {
     try {
+        console.log('Received data:', req.body); // Debug log for incoming data
         const newEntry = new OptIn(req.body);
         await newEntry.save();
         res.status(200).json({ message: 'Opt-in successful!' });
     } catch (error) {
-        console.error('Save error:', error);
+        console.error('Error saving data:', error); // Log detailed error
         res.status(500).json({ message: 'Error saving data.', error: error.message });
+    }
+});
+
+// Optional: Debug route to view all entries
+app.get('/api/entries', async (req, res) => {
+    try {
+        const entries = await OptIn.find();
+        res.status(200).json(entries);
+    } catch (error) {
+        console.error('Error fetching entries:', error);
+        res.status(500).json({ message: 'Error fetching entries.', error: error.message });
     }
 });
 
