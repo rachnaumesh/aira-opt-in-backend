@@ -6,11 +6,11 @@ const mongoose = require('mongoose');
 const app = express();
 
 // Middleware
-app.use(cors({ origin: 'https://rachnaumesh.github.io' })); // Ensure your frontend origin is included here
+app.use(cors({ origin: 'https://rachnaumesh.github.io' })); 
 app.use(bodyParser.json());
 
 // MongoDB Connection
-mongoose.connect('mongodb+srv://rachnaumesh:8slKr8m2u6o7fTE1@cluster0.wm56f.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+mongoose.connect('mongodb+srv://rachnaumesh:8slKr8m2u6o7fTE1@cluster0.wm56f.mongodb.net/Cluster0?retryWrites=true&w=majority', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
@@ -23,7 +23,7 @@ mongoose.connect('mongodb+srv://rachnaumesh:8slKr8m2u6o7fTE1@cluster0.wm56f.mong
 const OptInSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    age: { type: Number, required: true, min: 18 },
+    age: { type: Number, required: true},
     dataConsent: { type: String, required: true, enum: ['yes', 'no'] },
     createdAt: { type: Date, default: Date.now }
 });
@@ -38,10 +38,6 @@ const validateInput = (req, res, next) => {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
-    if (age < 18) {
-        return res.status(400).json({ message: 'Must be 18 or older' });
-    }
-
     if (!['yes', 'no'].includes(dataConsent)) {
         return res.status(400).json({ message: 'Invalid consent value' });
     }
@@ -52,15 +48,16 @@ const validateInput = (req, res, next) => {
 // API Endpoint
 app.post('/api/opt-in', validateInput, async (req, res) => {
     try {
-        console.log('Received data:', req.body); // Debug log for incoming data
+        console.log('Received Data:', req.body); // Log incoming request
         const newEntry = new OptIn(req.body);
         await newEntry.save();
         res.status(200).json({ message: 'Opt-in successful!' });
     } catch (error) {
-        console.error('Error saving data:', error); // Log detailed error
+        console.error('Error saving data:', error); // Log the error
         res.status(500).json({ message: 'Error saving data.', error: error.message });
     }
 });
+
 
 // Optional: Debug route to view all entries
 app.get('/api/entries', async (req, res) => {
